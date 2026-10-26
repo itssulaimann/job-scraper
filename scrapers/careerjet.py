@@ -58,6 +58,7 @@ _PAGE_DELAY = 0.5
 _LOCALES = {
     "DE": "de_DE", "AT": "de_AT", "CH": "de_CH",
     "GB": "en_GB", "US": "en_US", "NL": "nl_NL", "FR": "fr_FR", "ES": "es_ES",
+    "IT": "it_IT", "PL": "pl_PL",
 }
 
 _HEADERS = {

@@ -131,16 +131,24 @@ def fetch(template: "JobSearchTemplate") -> list[Job]:
     search_terms = template.linkedin_keywords if template.linkedin_keywords \
                    else ["product manager"]
 
-    location      = f"{template.location}, Germany"
     hours_old     = 72    # jobs posted in the last 3 days
     results_n     = 200   # LinkedIn allows ~490 per search; 200 is a safe ceiling
 
+    _cc = (template.country_code or "DE").upper()
+    # Indeed country param (jobspy-recognised names)
     _country_map = {
-        "DE": "germany", "AT": "austria", "CH": "switzerland",
-        "GB": "uk", "US": "usa", "FR": "france", "NL": "netherlands",
+        "DE": "germany", "AT": "austria", "CH": "switzerland", "GB": "uk",
+        "US": "usa", "FR": "france", "NL": "netherlands", "IT": "italy",
+        "ES": "spain", "PL": "poland",
     }
-    country_name = _country_map.get(template.country_code.upper(),
-                                    template.country_code.lower())
+    # Human country name for the LinkedIn/Indeed location string
+    _country_proper = {
+        "DE": "Germany", "AT": "Austria", "CH": "Switzerland", "GB": "United Kingdom",
+        "US": "USA", "FR": "France", "NL": "Netherlands", "IT": "Italy",
+        "ES": "Spain", "PL": "Poland",
+    }
+    country_name = _country_map.get(_cc, _cc.lower())
+    location = f"{template.location}, {_country_proper.get(_cc, template.country_code)}"
 
     # Indeed: combine all terms into one OR search
     indeed_term = " OR ".join(search_terms)

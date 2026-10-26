@@ -21,12 +21,7 @@
     </nav>
 
     <div class="pl-hd__right">
-      <span class="pl-hd__meta">Berlin</span>
-      <button class="pl-btn pl-btn--ghost" id="scrape-btn" title="Fetch new jobs (free sources)">
-        <span class="pl-btn__spin"></span>
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 2a1 1 0 0 1 1 1v4.586l2.707 2.707a1 1 0 0 1-1.414 1.414l-3-3A1 1 0 0 1 7 8V3a1 1 0 0 1 1-1zm0-2a8 8 0 1 0 0 16A8 8 0 0 0 8 0z"/></svg>
-        <span id="scrape-label">Fetch new</span>
-      </button>
+      <a class="pl-hd__by" href="https://www.linkedin.com/in/itssulaiman" target="_blank" rel="noopener">By <span>Ahmed Sulaiman</span></a>
     </div>
   </header>
 
@@ -36,6 +31,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="/static/js/city.js?v={{ asset_v('static/js/city.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

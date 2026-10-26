@@ -1,41 +1,44 @@
-# Manual deploy to the server. Runs only when triggered (Actions → Deploy → Run
-# workflow), so a push to this public repo never auto-deploys to production.
-#
-# Requires four repository secrets (Settings → Secrets and variables → Actions):
-#   DEPLOY_SSH_KEY   private key of a DEDICATED deploy key (not an admin key)
-#   DEPLOY_HOST      server IP / hostname
-#   DEPLOY_USER      ssh user (the app's service user)
-#   DEPLOY_PATH      app directory on the server
-# plus a sudoers rule so DEPLOY_USER can restart the service without a password:
-#   <user> ALL=(root) NOPASSWD: /usr/bin/systemctl restart pl-jobs
 name: Deploy
 
+# Ships the board to the production host on every push to main.
+# Host/user/key/path/restart command live in repo *Secrets* — nothing
+# sensitive is committed. Never runs on forks (no secrets available there).
+
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
-concurrency: deploy
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - name: Set up SSH
+
+      - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
-      - name: Sync code (keeps server-only files: .env, *.db, tracking.py)
+
+      - name: Rsync source to server
+        # No --delete: never removes server-only files (.env, *.db, tracking.py).
         run: |
           rsync -az \
             --exclude '.git' --exclude '.github' --exclude '.venv' \
-            --exclude '.env' --exclude '*.db' --exclude 'data' \
-            --exclude 'tracking.py' --exclude '__pycache__' \
-            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes" \
-            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
-      - name: Install deps + restart service
+            --exclude '.env' --exclude '*.db' --exclude '__pycache__' \
+            --exclude 'tracking.py' --exclude 'analytics.db' --exclude 'data' \
+            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new" \
+            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
+
+      - name: Restart service
         run: |
-          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes \
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "cd '${{ secrets.DEPLOY_PATH }}' && .venv/bin/pip install -q -r requirements.txt && sudo systemctl restart pl-jobs"
+            "${{ secrets.DEPLOY_RESTART_CMD }}"

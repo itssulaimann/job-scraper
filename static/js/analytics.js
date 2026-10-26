@@ -25,8 +25,9 @@
   }
 
   async function init() {
+    const city = window.PL_CITY || "berlin";
     let stats, audit;
-    try { [stats, audit] = await Promise.all([api("/api/stats?profile=productlab"), api("/api/audit?profile=productlab")]); }
+    try { [stats, audit] = await Promise.all([api("/api/stats?profile=" + city), api("/api/audit?profile=" + city)]); }
     catch { $("#kpis").innerHTML = `<div class="empty">Couldn’t load analytics.</div>`; return; }
 
     const h = audit.health || {};

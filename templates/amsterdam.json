@@ -1,0 +1,141 @@
+{
+  "name": "Product Manager — Amsterdam",
+  "description": "Product / Product Owner roles in Amsterdam",
+  "slug": "amsterdam",
+  "notion_db_id": "",
+  "cron_schedule": "0 21 */2 * *",
+  "location": "Amsterdam",
+  "country_code": "NL",
+  "linkedin_location_encoded": "Amsterdam%2C+Netherlands",
+  "location_keywords": [
+    "amsterdam"
+  ],
+  "linkedin_keywords": [
+    "product manager",
+    "senior product manager",
+    "technical product manager",
+    "AI product manager",
+    "product owner",
+    "founding product manager",
+    "platform product manager",
+    "product builder"
+  ],
+  "xing_keyword": "product manager",
+  "indeed_position": "product manager",
+  "stepstone_query": "product manager",
+  "wellfound_role_slug": "product-manager",
+  "arbeitsagentur_queries": [
+    "Product Manager",
+    "Product Owner"
+  ],
+  "greenhouse_slugs": [],
+  "scrapegraph_urls": [],
+  "eures_location_codes": [
+    "nl3"
+  ],
+  "eures_nuts_prefixes": [
+    "NL32"
+  ],
+  "careerjet_location": "Amsterdam",
+  "jsearch_queries": [
+    "product manager in amsterdam",
+    "product owner in amsterdam"
+  ],
+  "smartrecruiters_companies": [],
+  "ashby_slugs": [],
+  "personio_slugs": [],
+  "lever_slugs": [],
+  "allowed_title_terms": [
+    "product manager",
+    "product owner",
+    "product analyst",
+    "product lead",
+    "product director",
+    "product management",
+    "product builder",
+    "head of product",
+    "vp product",
+    "vp of product",
+    "vice president product",
+    "vice president of product",
+    "chief product",
+    "director of product",
+    "group product manager",
+    "principal product manager",
+    "technical product manager",
+    "founding pm",
+    "first pm",
+    "technical pm",
+    "ai pm",
+    "platform pm",
+    "solutions pm",
+    "senior pm",
+    "produktmanager",
+    "produktmanagement",
+    "produktowner",
+    "leiter produkt",
+    "leitung produkt"
+  ],
+  "exclude_keywords": [
+    "intern",
+    "internship",
+    "student",
+    "werkstudent",
+    "werkstudentin",
+    "praktikum",
+    "praktikant",
+    "praktikantin",
+    "thesis",
+    "bachelor thesis",
+    "master thesis",
+    "duales studium",
+    "trainee",
+    "apprentice"
+  ],
+  "seniority_rules": [
+    {
+      "keywords": [
+        "director",
+        "head of product",
+        "vp product",
+        "vp of product",
+        "vice president product",
+        "vice president of product",
+        "chief product",
+        "cpo",
+        "group product manager",
+        "gpm"
+      ],
+      "level": "Director"
+    },
+    {
+      "keywords": [
+        "senior",
+        "lead",
+        "principal",
+        "staff",
+        "sr."
+      ],
+      "level": "Senior PM"
+    },
+    {
+      "keywords": [
+        "junior",
+        "associate",
+        "entry level",
+        "graduate",
+        "jr.",
+        "jr "
+      ],
+      "level": "Junior PM"
+    }
+  ],
+  "seniority_default": "Senior PM",
+  "getro_networks": [],
+  "getro_queries": [
+    "product manager",
+    "product owner",
+    "founding product manager"
+  ],
+  "workable_slugs": []
+}

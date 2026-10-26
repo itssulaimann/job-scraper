@@ -1,37 +1,65 @@
 # ProductLab Jobs
 
-A tiny public board of fresh **Berlin product jobs** — browse, pick a few, and turn them into a branded LinkedIn post.
+A free, open board of fresh **Product Manager** roles across European tech hubs —
+**Berlin, Amsterdam, Milan, Barcelona and Warsaw**. Listings are scraped daily from
+~13 free, public sources, de-duplicated (including the same employer listed under
+slightly different names), cleaned, and served as a fast web board with a per-city
+analytics view and a LinkedIn-post composer. No login, no Notion, no paid APIs required.
 
-- **Browse** de-duplicated roles, auto-refreshed daily from free public sources.
-- **Compose** a LinkedIn carousel + summary card from 3–10 selected jobs (rendered and exported in the browser as PDF/PNG).
-- **Analytics** with a company-name auditor that flags the same employer scraped under slightly different names.
+## How it works
 
-FastAPI + vanilla JS. Jobs are scraped from free sources, de-duplicated, and tidied with a short Claude QA pass.
+```
+main.py (scrape) → SQLite (one DB per city) → server.py (FastAPI board + analytics + composer)
+```
 
-## Run locally
+- **Scrapers** (`scrapers/`) pull from free, keyless public endpoints.
+- **`company_audit.py`** clusters near-duplicate company names (fuzzy) and flags the
+  same role found across multiple sources.
+- **`clean.py`** normalises titles, companies and work-type (on-site / hybrid / remote).
+- **`server.py`** serves the board, a market-overview analytics page, and a 1080×1080
+  LinkedIn-visual composer.
+
+## Quick start
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-# add a search template under templates/ (see templates/example.json), then:
-uvicorn server:app --port 8642   # → http://localhost:8642
+
+# scrape one city (free sources only)
+python3 main.py --template berlin --free-only
+
+# run the board
+uvicorn server:app --host 0.0.0.0 --port 8642
 ```
 
-## Credits
+Open http://localhost:8642 — pick a city from the heading dropdown.
 
-This stands on a lot of open-source work.
+Each city is a template in `templates/<city>.json` (search terms, title filters,
+seniority rules) and writes to its own SQLite DB (`jobs_<city>.db`). Add a city by
+copying a template and registering it in `profiles/__init__.py`.
 
-**Libraries**
-- [FastAPI](https://github.com/fastapi/fastapi) · [Uvicorn](https://github.com/encode/uvicorn) · [Jinja](https://github.com/pallets/jinja)
-- [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) · [RapidFuzz](https://github.com/rapidfuzz/RapidFuzz)
-- [html-to-image](https://github.com/bubkoo/html-to-image) · [jsPDF](https://github.com/parallax/jsPDF) · [JSZip](https://github.com/Stuk/jszip)
+## Sources & credits
 
-**Job sources & scrapers**
-- [JobSpy](https://github.com/speedyapply/JobSpy) — LinkedIn & Indeed
-- [Arbeitnow](https://www.arbeitnow.com/api) · [Bundesagentur für Arbeit](https://jobsuche.api.bund.dev/) · [EURES](https://eures.europa.eu/) (EU Commission)
-- [Greenhouse](https://developers.greenhouse.io/job-board.html) · [SmartRecruiters](https://developers.smartrecruiters.com/) · [Ashby](https://developers.ashbyhq.com/) · [Personio](https://developer.personio.de/) · [Lever](https://github.com/lever/postings-api) · [Workable](https://workable.readme.io/)
-- [Careerjet](https://www.careerjet.com/partners/api/) · [JSearch](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)
-- GermanTechJobs & BerlinStartupJobs (RSS) · [a16z Speedrun](https://a16z.com/speedrun/) · [Getro](https://getro.com/) VC boards · [foundhamburg](https://foundhamburg.com/jobs)
-- [ScrapeGraphAI](https://github.com/ScrapeGraphAI/Scrapegraph-ai) + [Scrapling](https://github.com/D4Vinci/Scrapling) for career-page extraction
+This project stands on open-source work and free public APIs. Thanks to:
 
-Listing clean-up (title tidy + duplicate/mismatch flagging) by [Claude](https://claude.com).
+- **[JobSpy](https://github.com/Bunsly/JobSpy)** — LinkedIn & Indeed guest-API scraping (`python-jobspy`)
+- **[Careerjet](https://www.careerjet.com/)** public search API
+- **[EURES](https://eures.europa.eu/)** — European Commission job mobility API
+- **[Arbeitnow](https://www.arbeitnow.com/)** and the **[Bundesagentur für Arbeit](https://www.arbeitsagentur.de/)** job APIs
+- **[Greenhouse](https://developers.greenhouse.io/job-board.html)** public job-board JSON API
+- ATS boards: **SmartRecruiters, Ashby, Personio, Lever, Workable** public endpoints
+- **[Getro](https://www.getro.com/)** VC-portfolio board search API
+- RSS / WordPress feeds: GermanTechJobs, BerlinStartupJobs, FoundHamburg, a16z Speedrun
+- **[JSearch](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)** (optional, metered free tier)
+
+Built with **[FastAPI](https://fastapi.tiangolo.com/)**, **[Uvicorn](https://www.uvicorn.org/)**,
+**[Jinja2](https://palletsprojects.com/p/jinja/)**, **[RapidFuzz](https://github.com/rapidfuzz/RapidFuzz)**
+and **[BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)**. The composer uses
+**[html-to-image](https://github.com/bubkoo/html-to-image)**, **[jsPDF](https://github.com/parallax/jsPDF)**
+and **[JSZip](https://github.com/Stuk/jszip)**.
+
+Please respect each source's terms of use. This board links back to every original posting.
+
+---
+
+Built by Ahmed Sulaiman.

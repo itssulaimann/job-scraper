@@ -1,24 +1,37 @@
-# runtime / local
-.venv/
+# Python
 __pycache__/
 *.pyc
-*.log
-logs/
-.DS_Store
+*.pyo
+.venv/
+venv/
+
+# env / secrets
 .env
 
-# data (never committed)
-*.db
-*.db.bak*
-data/
+# logs
+logs/
+*.log
 
-# server-only analytics (not part of the public project)
+# OS
+.DS_Store
+
+# SQLite data (seeded on first run / scraped on the server)
+*.db
+*.db.bak-*
+
+# server-only, never published: visitor analytics + geo data
 tracking.py
 analytics.db
+data/
 
-# your own search templates (keep private)
+# personal search templates — only the demo cities are tracked
 templates/*.json
-!templates/example.json
+!templates/berlin.json
+!templates/amsterdam.json
+!templates/milan.json
+!templates/barcelona.json
+!templates/warsaw.json
 
-# brand fonts are licensed — not redistributed here
-static/brand/fonts/
+# personal candidate-profile modules (not used by the public board)
+profiles/*.py
+!profiles/__init__.py

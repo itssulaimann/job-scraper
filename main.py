@@ -32,21 +32,24 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# name → fetch(template). All free / keyless (JSearch is a capped free tier).
+# (name, fetch, only_country). All free / keyless (JSearch is a capped free tier).
+# only_country="DE" marks German/Berlin/Hamburg-specific sources that ignore the
+# template location — they run only for German templates so they don't pollute a
+# non-German city's DB.
 SOURCES = [
-    ("Arbeitnow",      arbeitnow.fetch),
-    ("Arbeitsagentur", arbeitsagentur.fetch),
-    ("EURES",          eures.fetch),
-    ("Greenhouse",     greenhouse_api.fetch),
-    ("ATS Boards",     ats_boards.fetch),
-    ("Careerjet",      careerjet.fetch),
-    ("JobSpy",         jobspy.fetch),
-    ("RSS Feeds",      rss_feeds.fetch),
-    ("Speedrun",       speedrun.fetch),
-    ("VC Boards",      vc_boards.fetch),
-    ("FoundHamburg",   foundhamburg.fetch),
-    ("JSearch",        jsearch.fetch),
-    ("ScrapeGraph",    scrapegraph.fetch),
+    ("Arbeitnow",      arbeitnow.fetch,      "DE"),
+    ("Arbeitsagentur", arbeitsagentur.fetch, "DE"),
+    ("EURES",          eures.fetch,          None),
+    ("Greenhouse",     greenhouse_api.fetch, None),
+    ("ATS Boards",     ats_boards.fetch,     None),
+    ("Careerjet",      careerjet.fetch,      None),
+    ("JobSpy",         jobspy.fetch,         None),
+    ("RSS Feeds",      rss_feeds.fetch,      "DE"),
+    ("Speedrun",       speedrun.fetch,       None),
+    ("VC Boards",      vc_boards.fetch,      None),
+    ("FoundHamburg",   foundhamburg.fetch,   "DE"),
+    ("JSearch",        jsearch.fetch,        None),
+    ("ScrapeGraph",    scrapegraph.fetch,    None),
 ]
 
 
@@ -81,7 +84,7 @@ def _prompt_template():
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="ProductLab Jobs — free job scraper")
-    parser.add_argument("--template", metavar="SLUG", help="Template to use (e.g. pm_berlin)")
+    parser.add_argument("--template", metavar="SLUG", help="Template to use (e.g. berlin)")
     parser.add_argument("--dry-run", action="store_true", help="Print matched jobs without writing")
     parser.add_argument("--free-only", action="store_true",
                         help="(default behaviour; kept for compatibility)")
@@ -91,8 +94,11 @@ def main() -> None:
     log.info(f"Using template: {template.name}")
     classifier.set_active_template(template)
 
+    cc = (template.country_code or "DE").upper()
     all_jobs = []
-    for name, fn in SOURCES:
+    for name, fn, only in SOURCES:
+        if only and only != cc:
+            continue
         all_jobs.extend(_run(name, fn, template))
     log.info(f"Total collected: {len(all_jobs)} jobs")
 

@@ -24,7 +24,8 @@
     dlPdf: $("#dl-pdf"), dlZip: $("#dl-zip"), dlSum: $("#dl-sum"),
   };
   el.date.value = defaultDate;
-  el.sub.value = `${jobs.length} new roles in Berlin — hand-picked this week.`;
+  const cityLabel = sessionStorage.getItem("pl_city_label") || "Berlin";
+  el.sub.value = `${jobs.length} new roles in ${cityLabel} — hand-picked this week.`;
 
   let toastT;
   const toast = (m, err) => { el.toast.textContent = m; el.toast.classList.toggle("is-err", !!err); el.toast.classList.add("is-show"); clearTimeout(toastT); toastT = setTimeout(() => el.toast.classList.remove("is-show"), 3400); };

@@ -17,7 +17,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -46,6 +46,11 @@ try:
     tracking.init(app)
 except Exception:
     pass
+
+# Per-IP rate limiting + security headers + body caps. Added last so it wraps
+# everything and rejects abuse before any app logic (or the LLM) runs.
+import security
+security.init(app)
 
 _jinja = Environment(
     loader=FileSystemLoader(str(BASE / "templates")),
@@ -161,6 +166,21 @@ async def analytics_page(request: Request):
 @app.get("/compose", response_class=HTMLResponse)
 async def compose_page(request: Request):
     return _render("compose.html", request)
+
+
+# Discovery files for LLMs / crawlers (served at the site root).
+@app.get("/llms.txt", include_in_schema=False)
+@app.get("/llm.txt", include_in_schema=False)
+async def llms_txt():
+    try:
+        return PlainTextResponse((BASE / "llms.txt").read_text(encoding="utf-8"))
+    except Exception:
+        return PlainTextResponse("", status_code=404)
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return PlainTextResponse("User-agent: *\nAllow: /\n\n# LLM discovery: /llms.txt\n")
 
 
 # ── API ──────────────────────────────────────────────────────────────────────

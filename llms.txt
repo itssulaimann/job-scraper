@@ -1,0 +1,25 @@
+# ProductLab Jobs
+
+> A free, open board of fresh product-management jobs across European tech hubs — Berlin, Amsterdam, Milan, Barcelona and Warsaw. Listings are scraped daily from public sources, de-duplicated, and cleaned. No login or signup required.
+
+ProductLab Jobs aggregates Product Manager / Product Owner roles from ~13 free public job sources (LinkedIn, Indeed, Greenhouse, Careerjet, EURES, SmartRecruiters, Ashby and more), removes duplicates — including the same employer listed under slightly different names — and presents them per city. You can browse by city, search, filter by recency, and open the original posting. Every listing links back to its source.
+
+## Pages
+
+- [Jobs board](https://pm-jobs.productlab.app/): Browse current product roles; choose a city from the dropdown in the heading.
+- [Analytics](https://pm-jobs.productlab.app/analytics): Per-city market overview — jobs by source, top employers, and data-quality audit.
+
+## Job data (JSON API — open, no auth)
+
+Read the current listings programmatically. All endpoints return JSON.
+
+- [Cities](https://pm-jobs.productlab.app/api/profiles): Available cities. Keys: `berlin`, `amsterdam`, `milan`, `barcelona`, `warsaw`.
+- [Jobs](https://pm-jobs.productlab.app/api/jobs?profile=berlin&per_page=100): Current roles for a city. Set `profile` to a city key. Optional params: `q` (search title/company), `days` (1 / 7 / 30), `sort` (`posted` | `newest` | `company`), `page`, `per_page`.
+- [Market stats](https://pm-jobs.productlab.app/api/stats?profile=berlin): Totals, jobs-by-source and top companies for a city.
+
+Each job object includes: `title_display` (cleaned title), `company_display`, `location`, `work_type` (On-site / Hybrid / Remote), `posted_date`, `source`, and `url` (the original job posting).
+
+## Notes
+
+- Data auto-refreshes every morning (Berlin daily; the other cities weekly), ~02:00–03:00 CET.
+- To apply, follow each job's `url` to the original posting — ProductLab Jobs does not host applications.

@@ -3,11 +3,15 @@
 
 {% block content %}
 <div class="wrap">
-  <div class="page-head">
+  <div class="page-head" style="position:relative">
     <div>
-      <div class="page-title">Berlin market overview</div>
+      <div class="page-title"><span id="city-anchor"></span> market overview</div>
       <div class="page-sub">Where the roles come from — and a data-quality audit of the board.</div>
     </div>
+    <button class="pl-fetch-hidden" id="scrape-btn" aria-label="Refresh data">
+      <span class="pl-btn__spin"></span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13.6 8a5.6 5.6 0 1 1-1.7-4M13.6 1.8v3.1h-3.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 
   <div class="cards" id="kpis"></div>
@@ -34,4 +38,5 @@
 
 {% block scripts %}
 <script src="/static/js/analytics.js?v={{ asset_v('static/js/analytics.js') }}"></script>
+<script src="/static/js/fetch.js?v={{ asset_v('static/js/fetch.js') }}"></script>
 {% endblock %}

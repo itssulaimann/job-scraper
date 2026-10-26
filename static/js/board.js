@@ -15,8 +15,7 @@
     list: $("#list"), count: $("#count"), more: $("#more"), sub: $("#sub"),
     q: $("#q"), sort: $("#sort"), days: $("#days"),
     selbar: $("#selbar"), seln: $("#seln"), selhint: $("#selhint"),
-    makebtn: $("#makebtn"), selclear: $("#selclear"),
-    scrapeBtn: $("#scrape-btn"), scrapeLabel: $("#scrape-label"), toast: $("#toast"),
+    makebtn: $("#makebtn"), selclear: $("#selclear"), toast: $("#toast"),
   };
 
   const esc = (s) => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -65,7 +64,7 @@
   async function load(reset) {
     if (reset) { state.page = 1; el.list.innerHTML = '<div class="skl"></div><div class="skl"></div><div class="skl"></div>'; }
     const p = new URLSearchParams({
-      city: "Berlin", status: "all", lang: "all",
+      profile: window.PL_CITY || "berlin",
       q: state.q, sort: state.sort, days: state.days,
       page: state.page, per_page: state.perPage,
     });
@@ -86,7 +85,7 @@
     const html = data.jobs.map(rowHTML).join("");
     if (reset) el.list.innerHTML = html || `<div class="empty">No jobs match. Try clearing the search or widening the date range.</div>`;
     else el.list.insertAdjacentHTML("beforeend", html);
-    el.count.textContent = `${data.total.toLocaleString()} role${data.total === 1 ? "" : "s"} in Berlin`;
+    el.count.textContent = `${data.total.toLocaleString()} role${data.total === 1 ? "" : "s"} in ${window.PL_CITY_LABEL || "Berlin"}`;
     el.more.style.display = state.page < state.pages ? "" : "none";
     syncRows();
   }
@@ -141,51 +140,9 @@
   el.makebtn.addEventListener("click", () => {
     if (state.selected.size < MIN) return;
     sessionStorage.setItem("pl_selected", JSON.stringify([...state.selected.values()]));
+    sessionStorage.setItem("pl_city_label", window.PL_CITY_LABEL || "Berlin");
     location.href = "/compose";
   });
-
-  // ---- fetch (admin-gated) ----
-  // The board auto-refreshes daily at 5 AM, so manual fetching is disabled for
-  // normal visitors: a single click does nothing. Five quick clicks reveal an
-  // admin password prompt; the password is validated server-side (never shipped
-  // to the browser), so this is a convenience gesture, not the real gate.
-  let pollT, clickN = 0, clickTimer = null;
-  el.scrapeBtn.title = "Jobs auto-update daily at 5 AM";
-  el.scrapeBtn.addEventListener("click", () => {
-    if (el.scrapeBtn.classList.contains("is-busy")) return;
-    clickN++;
-    clearTimeout(clickTimer);
-    clickTimer = setTimeout(() => { clickN = 0; }, 1500);
-    if (clickN < 5) return;               // normal visitors: no-op
-    clickN = 0;
-    const pw = prompt("Admin password to fetch new jobs:");
-    if (pw) startFetch(pw);
-  });
-  async function startFetch(pw) {
-    el.scrapeBtn.classList.add("is-busy"); el.scrapeLabel.textContent = "Fetching…";
-    try {
-      const r = await fetch("/api/scrape", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pw }),
-      });
-      if (r.status === 403) { toast("Wrong password — fetching stays disabled.", true); resetScrape(); return; }
-      if (r.status === 409) { toast("A fetch is already running."); resetScrape(); return; }
-      toast("Fetching new Berlin jobs — this takes a few minutes.");
-      pollT = setInterval(pollScrape, 3000);
-    } catch { toast("Couldn’t start fetch.", true); resetScrape(); }
-  }
-  async function pollScrape() {
-    let s; try { s = await api("/api/scrape/status"); } catch { return; }
-    if (!s.running && s.result) {
-      clearInterval(pollT); resetScrape();
-      if (s.result.ok) { toast(`Done — ${s.result.added || 0} new job(s) added.`); load(true); }
-      else toast("Fetch failed: " + (s.result.error || "unknown"), true);
-    }
-  }
-  function resetScrape() { el.scrapeBtn.classList.remove("is-busy"); el.scrapeLabel.textContent = "Fetch new"; }
-
-  // resume a scrape that was already running when the page loaded
-  api("/api/scrape/status").then(s => { if (s && s.running) { el.scrapeBtn.classList.add("is-busy"); el.scrapeLabel.textContent = "Fetching…"; pollT = setInterval(pollScrape, 3000); } }).catch(() => {});
 
   syncSelbar();
   load(true);
