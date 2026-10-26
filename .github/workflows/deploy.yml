@@ -2,7 +2,8 @@ name: Deploy
 
 # Ships the board to the production host on every push to main.
 # Host/user/key/path/restart command live in repo *Secrets* — nothing
-# sensitive is committed. Never runs on forks (no secrets available there).
+# sensitive is committed. If the secrets are not set, the job skips cleanly
+# (green) instead of failing, so an unconfigured fork/clone stays quiet.
 
 on:
   push:
@@ -16,11 +17,24 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     steps:
+      - name: Check deploy is configured
+        id: cfg
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy secrets not set — skipping. Add DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH and DEPLOY_RESTART_CMD to enable auto-deploy."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.cfg.outputs.configured == 'true'
 
       - name: Configure SSH
+        if: steps.cfg.outputs.configured == 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
@@ -29,6 +43,7 @@ jobs:
 
       - name: Rsync source to server
         # No --delete: never removes server-only files (.env, *.db, tracking.py).
+        if: steps.cfg.outputs.configured == 'true'
         run: |
           rsync -az \
             --exclude '.git' --exclude '.github' --exclude '.venv' \
@@ -38,6 +53,7 @@ jobs:
             ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
 
       - name: Restart service
+        if: steps.cfg.outputs.configured == 'true'
         run: |
           ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
