@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Berlin Jobs — ProductLab{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <div class="page-title">New roles in Berlin</div>
+      <div class="page-sub" id="sub">Pick 3–10 and turn them into a LinkedIn post.</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>
+      <input type="search" id="q" placeholder="Search title or company…" autocomplete="off">
+    </label>
+    <select class="select" id="sort" aria-label="Sort">
+      <option value="posted">Recently posted</option>
+      <option value="newest">Recently added</option>
+      <option value="company">Company A–Z</option>
+    </select>
+    <div class="chip-row" id="days" role="group" aria-label="Freshness">
+      <button class="chip is-on" data-d="0">All</button>
+      <button class="chip" data-d="1">24h</button>
+      <button class="chip" data-d="7">7 days</button>
+      <button class="chip" data-d="30">30 days</button>
+    </div>
+  </div>
+
+  <div class="count" id="count">Loading…</div>
+  <div class="joblist" id="list"></div>
+  <div style="text-align:center;margin-top:18px">
+    <button class="pl-btn pl-btn--outline" id="more" style="display:none">Load more</button>
+  </div>
+</div>
+
+<div class="selbar" id="selbar">
+  <div class="selbar__inner">
+    <div>
+      <div class="selbar__count"><b id="seln">0</b> selected</div>
+      <div class="selbar__hint" id="selhint">Select 3–10 jobs</div>
+    </div>
+    <div class="selbar__spacer"></div>
+    <a class="selbar__clear" id="selclear" href="#">Clear</a>
+    <button class="pl-btn" id="makebtn" disabled>Create LinkedIn post →</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/board.js?v={{ asset_v('static/js/board.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,41 @@
+# Manual deploy to the server. Runs only when triggered (Actions → Deploy → Run
+# workflow), so a push to this public repo never auto-deploys to production.
+#
+# Requires four repository secrets (Settings → Secrets and variables → Actions):
+#   DEPLOY_SSH_KEY   private key of a DEDICATED deploy key (not an admin key)
+#   DEPLOY_HOST      server IP / hostname
+#   DEPLOY_USER      ssh user (the app's service user)
+#   DEPLOY_PATH      app directory on the server
+# plus a sudoers rule so DEPLOY_USER can restart the service without a password:
+#   <user> ALL=(root) NOPASSWD: /usr/bin/systemctl restart pl-jobs
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+      - name: Sync code (keeps server-only files: .env, *.db, tracking.py)
+        run: |
+          rsync -az \
+            --exclude '.git' --exclude '.github' --exclude '.venv' \
+            --exclude '.env' --exclude '*.db' --exclude 'data' \
+            --exclude 'tracking.py' --exclude '__pycache__' \
+            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes" \
+            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+      - name: Install deps + restart service
+        run: |
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd '${{ secrets.DEPLOY_PATH }}' && .venv/bin/pip install -q -r requirements.txt && sudo systemctl restart pl-jobs"

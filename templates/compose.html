@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Compose LinkedIn post — ProductLab{% endblock %}
+
+{% block head %}
+<script src="/static/vendor/html-to-image.js"></script>
+<script src="/static/vendor/jspdf.umd.min.js"></script>
+<script src="/static/vendor/jszip.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="studio">
+  <div class="studio__preview">
+    <a class="backlink" href="/">← Back to jobs</a>
+    <div id="thumbs"></div>
+  </div>
+
+  <aside class="studio__side">
+    <h3>Post settings</h3>
+    <div class="field">
+      <label for="f-date">Date label</label>
+      <input type="text" id="f-date">
+    </div>
+    <div class="field">
+      <label for="f-cover1">Cover — line 1</label>
+      <input type="text" id="f-cover1" value="NEW">
+    </div>
+    <div class="field">
+      <label for="f-cover2">Cover — line 2</label>
+      <input type="text" id="f-cover2" value="ROLES.">
+    </div>
+    <div class="field">
+      <label for="f-sub">Cover subtitle</label>
+      <input type="text" id="f-sub">
+    </div>
+    <div class="field">
+      <label for="f-sum1">Summary — line 1</label>
+      <input type="text" id="f-sum1" value="NEW ROLES">
+    </div>
+    <div class="field">
+      <label for="f-sum2">Summary — line 2 (green)</label>
+      <input type="text" id="f-sum2" value="THIS WEEK.">
+    </div>
+
+    <h3 style="margin-top:16px">Include</h3>
+    <label class="togrow"><input type="checkbox" id="t-cover" checked> Cover card</label>
+    <label class="togrow"><input type="checkbox" id="t-summary" checked> Summary card</label>
+
+    <div class="studio__actions">
+      <button class="pl-btn" id="dl-pdf"><span class="pl-btn__spin"></span>Download carousel (PDF)</button>
+      <button class="pl-btn pl-btn--outline" id="dl-zip">Download cards (ZIP)</button>
+      <button class="pl-btn pl-btn--outline" id="dl-sum">Download summary (PNG)</button>
+    </div>
+  </aside>
+</div>
+
+<!-- offscreen full-size render target -->
+<div class="plc-stage" id="stage" aria-hidden="true"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/compose.js?v={{ asset_v('static/js/compose.js') }}"></script>
+{% endblock %}

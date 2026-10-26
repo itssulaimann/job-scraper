@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ProductLab Jobs{% endblock %}</title>
+  <link rel="icon" href="/static/brand/productlab-logo.svg">
+  <link rel="stylesheet" href="/static/css/productlab.css?v={{ asset_v('static/css/productlab.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <header class="pl-hd">
+    <a href="/" class="pl-hd__brand" aria-label="ProductLab Jobs">
+      <img src="/static/brand/productlab-logo.svg" alt="ProductLab" height="24">
+    </a>
+
+    <nav class="pl-hd__nav" aria-label="Main">
+      <a href="/"          class="pl-hd__link {% if request.url.path == '/' %}is-active{% endif %}">Jobs</a>
+      <a href="/analytics" class="pl-hd__link {% if '/analytics' in request.url.path %}is-active{% endif %}">Analytics</a>
+    </nav>
+
+    <div class="pl-hd__right">
+      <span class="pl-hd__meta">Berlin</span>
+      <button class="pl-btn pl-btn--ghost" id="scrape-btn" title="Fetch new jobs (free sources)">
+        <span class="pl-btn__spin"></span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 2a1 1 0 0 1 1 1v4.586l2.707 2.707a1 1 0 0 1-1.414 1.414l-3-3A1 1 0 0 1 7 8V3a1 1 0 0 1 1-1zm0-2a8 8 0 1 0 0 16A8 8 0 0 0 8 0z"/></svg>
+        <span id="scrape-label">Fetch new</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

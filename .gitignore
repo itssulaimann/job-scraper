@@ -1,0 +1,24 @@
+# runtime / local
+.venv/
+__pycache__/
+*.pyc
+*.log
+logs/
+.DS_Store
+.env
+
+# data (never committed)
+*.db
+*.db.bak*
+data/
+
+# server-only analytics (not part of the public project)
+tracking.py
+analytics.db
+
+# your own search templates (keep private)
+templates/*.json
+!templates/example.json
+
+# brand fonts are licensed — not redistributed here
+static/brand/fonts/

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Analytics — ProductLab Jobs{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <div class="page-title">Berlin market overview</div>
+      <div class="page-sub">Where the roles come from — and a data-quality audit of the board.</div>
+    </div>
+  </div>
+
+  <div class="cards" id="kpis"></div>
+
+  <div class="panel">
+    <div class="panel__h">Jobs by source</div>
+    <div class="panel__sub">Which scrapers are pulling their weight.</div>
+    <div id="bySource"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__h">Most-posted companies</div>
+    <div class="panel__sub">Top employers on the board right now.</div>
+    <div id="topCos"></div>
+  </div>
+
+  <div class="panel" id="healthPanel">
+    <div class="panel__h">Data health</div>
+    <div class="panel__sub">How clean the board is.</div>
+    <div class="cards" id="health" style="margin-top:12px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/analytics.js?v={{ asset_v('static/js/analytics.js') }}"></script>
+{% endblock %}
