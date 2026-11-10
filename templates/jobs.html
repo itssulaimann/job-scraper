@@ -14,16 +14,50 @@
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>
       <input type="search" id="q" placeholder="Search title or company…" autocomplete="off">
     </label>
-    <select class="select" id="sort" aria-label="Sort">
-      <option value="posted">Recently posted</option>
-      <option value="newest">Recently added</option>
-      <option value="company">Company A–Z</option>
-    </select>
-    <div class="chip-row" id="days" role="group" aria-label="Freshness">
-      <button class="chip is-on" data-d="0">All</button>
-      <button class="chip" data-d="1">24h</button>
-      <button class="chip" data-d="7">7 days</button>
-      <button class="chip" data-d="30">30 days</button>
+    <div class="advf" id="advf">
+      <button type="button" class="advf__btn" id="advf-btn" aria-expanded="false" aria-haspopup="dialog">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M4.5 8h7M7 12h2" stroke-linecap="round"/></svg>
+        <span>Sort &amp; filter</span>
+        <span class="advf__badge" id="advf-badge" hidden>0</span>
+      </button>
+      <div class="advf__panel" id="advf-panel" role="dialog" aria-label="Sort and filters">
+        <div class="advf__sec">
+          <div class="advf__lbl">Sort by</div>
+          <select class="select advf__sort" id="sort" aria-label="Sort">
+            <option value="newest">Recently added</option>
+            <option value="company">Company A–Z</option>
+          </select>
+        </div>
+        <div class="advf__sec">
+          <div class="advf__lbl">Time</div>
+          <div class="chip-row" id="days" role="group" aria-label="Freshness">
+            <button class="chip is-on" data-d="0">All</button>
+            <button class="chip" data-d="1">24h</button>
+            <button class="chip" data-d="7">7 days</button>
+            <button class="chip" data-d="30">30 days</button>
+          </div>
+        </div>
+        <div class="advf__sec">
+          <div class="advf__lbl">Work type</div>
+          <div class="chip-row" id="worktype" role="group" aria-label="Work type">
+            <button class="chip" data-w="Remote">Remote</button>
+            <button class="chip" data-w="Hybrid">Hybrid</button>
+            <button class="chip" data-w="On-site">On-site</button>
+          </div>
+        </div>
+        <div class="advf__sec">
+          <div class="advf__lbl">Company</div>
+          <label class="advf__search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>
+            <input type="search" id="co-search" placeholder="Search companies…" autocomplete="off">
+          </label>
+          <div class="advf__list" id="co-list"></div>
+        </div>
+        <div class="advf__foot">
+          <button type="button" class="advf__clear" id="advf-clear">Clear all</button>
+          <button type="button" class="pl-btn advf__done" id="advf-done">Done</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -31,18 +65,6 @@
   <div class="joblist" id="list"></div>
   <div style="text-align:center;margin-top:18px">
     <button class="pl-btn pl-btn--outline" id="more" style="display:none">Load more</button>
-  </div>
-</div>
-
-<div class="selbar" id="selbar">
-  <div class="selbar__inner">
-    <div>
-      <div class="selbar__count"><b id="seln">0</b> selected</div>
-      <div class="selbar__hint" id="selhint">Select 3–10 jobs</div>
-    </div>
-    <div class="selbar__spacer"></div>
-    <a class="selbar__clear" id="selclear" href="#">Clear</a>
-    <button class="pl-btn" id="makebtn" disabled>Create LinkedIn post →</button>
   </div>
 </div>
 {% endblock %}

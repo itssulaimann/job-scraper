@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ProductLab Jobs — FastAPI backend for the public Berlin job board.
 
-Serves the board, the LinkedIn-visual composer and the analytics/auditor page.
+Serves the job board and the analytics/auditor page.
 Reads a local SQLite DB populated by main.py. No Notion, fit model or triage.
 
     uvicorn server:app --host 0.0.0.0 --port 8642
@@ -16,7 +16,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -117,15 +117,27 @@ CITY_SQL = """CASE
   ELSE 'Elsewhere'
 END"""
 
+# Work mode, derived the same way clean.work_type() does for display so the
+# filter and the badge on each row always agree (hybrid wins over remote).
+_WT_BLOB = "lower(coalesce(title,'')||' '||coalesce(location,'')||' '||coalesce(description,''))"
+WORKTYPE_SQL = f"""CASE
+  WHEN {_WT_BLOB} LIKE '%hybrid%' THEN 'Hybrid'
+  WHEN {_WT_BLOB} LIKE '%remote%'
+    OR {_WT_BLOB} LIKE '%home office%'
+    OR {_WT_BLOB} LIKE '%homeoffice%' THEN 'Remote'
+  ELSE 'On-site'
+END"""
+
 SORTS = {
     "posted":  "posted_date IS NULL, posted_date DESC, scraped_date DESC, id DESC",
-    "newest":  "scraped_date DESC, id DESC",
+    "newest":  "scraped_date DESC, posted_date DESC, id DESC",
     "oldest":  "scraped_date ASC, id ASC",
     "company": "company COLLATE NOCASE ASC, scraped_date DESC",
 }
 
 
-def _build_where(q: str, source: str, seniority: str, city: str, days: int):
+def _build_where(q: str, source: str, seniority: str, city: str, days: int,
+                 company: list[str] | None = None, work_type: list[str] | None = None):
     clauses, params = ["1=1"], []
     if q:
         clauses.append("(LOWER(title) LIKE ? OR LOWER(company) LIKE ?)")
@@ -136,6 +148,13 @@ def _build_where(q: str, source: str, seniority: str, city: str, days: int):
             if items:
                 clauses.append(f"{col} IN ({','.join('?' * len(items))})")
                 params += items
+    # Multi-value facets passed as repeated params (company names can contain
+    # commas, so these are NOT comma-split like the fields above).
+    for vals, col in ((company, "company"), (work_type, WORKTYPE_SQL)):
+        picked = [v for v in (vals or []) if v]
+        if picked:
+            clauses.append(f"{col} IN ({','.join('?' * len(picked))})")
+            params += picked
     if days > 0:
         clauses.append("scraped_date >= ?")
         params.append((date.today() - timedelta(days=days)).isoformat())
@@ -163,11 +182,6 @@ async def analytics_page(request: Request):
     return _render("analytics.html", request)
 
 
-@app.get("/compose", response_class=HTMLResponse)
-async def compose_page(request: Request):
-    return _render("compose.html", request)
-
-
 # Discovery files for LLMs / crawlers (served at the site root).
 @app.get("/llms.txt", include_in_schema=False)
 @app.get("/llm.txt", include_in_schema=False)
@@ -187,10 +201,12 @@ async def robots_txt():
 
 @app.get("/api/jobs")
 async def list_jobs(q: str = "", source: str = "", seniority: str = "", city: str = "",
-                    days: int = 0, sort: str = "posted", page: int = 1,
-                    per_page: int = 40, profile: str = ""):
+                    days: int = 0, sort: str = "newest", page: int = 1,
+                    per_page: int = 40, profile: str = "",
+                    company: list[str] = Query(default=[]),
+                    work_type: list[str] = Query(default=[])):
     profile = profiles.resolve(profile)
-    where, params = _build_where(q, source, seniority, city, days)
+    where, params = _build_where(q, source, seniority, city, days, company, work_type)
     order = SORTS.get(sort, SORTS["posted"])
     offset = (page - 1) * per_page
     with _db(profile) as conn:
@@ -236,6 +252,27 @@ async def api_audit(profile: str = ""):
 @app.get("/api/profiles")
 async def api_profiles():
     return {"profiles": profiles.REGISTRY, "default": profiles.DEFAULT}
+
+
+@app.get("/api/companies")
+async def api_companies(profile: str = ""):
+    """Companies for the advanced-filter picker, grouped by cleaned display name
+    so "Acme" and "Acme GmbH" collapse into one row. `values` are the raw stored
+    names that row filters on (company IN values); `count` is their combined total."""
+    profile = profiles.resolve(profile)
+    with _db(profile) as conn:
+        rows = conn.execute(
+            "SELECT company AS name, COUNT(*) AS count FROM jobs "
+            "WHERE company IS NOT NULL AND TRIM(company) != '' GROUP BY company").fetchall()
+    groups: dict[str, dict] = {}
+    for r in rows:
+        raw = r["name"]
+        label = clean.clean_company(raw) or raw
+        g = groups.setdefault(label.casefold(), {"label": label, "count": 0, "values": []})
+        g["count"] += r["count"]
+        g["values"].append(raw)
+    companies = sorted(groups.values(), key=lambda g: (-g["count"], g["label"].casefold()))
+    return {"companies": companies}
 
 
 # ── scrape (admin-gated) ──────────────────────────────────────────────────────

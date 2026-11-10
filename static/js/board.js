@@ -1,21 +1,21 @@
-/* ProductLab Jobs — board: browse Berlin jobs, select 3–10, hand to composer. */
+/* ProductLab Jobs — board: browse roles, search/filter, open the listing. */
 (() => {
   "use strict";
-  const MAX = 10, MIN = 3;
   const $ = (s, r = document) => r.querySelector(s);
   const api = (p) => fetch(p).then(r => r.json());
 
   const state = {
-    q: "", sort: "posted", days: 0, page: 1, perPage: 40, pages: 1,
-    selected: new Map(),   // id -> {id,title,company,work_type,url}
-    jobsById: {},          // id -> job (for selection, across pages)
+    q: "", sort: "newest", days: 0, company: [], workType: [],
+    page: 1, perPage: 40, pages: 1,
   };
 
   const el = {
     list: $("#list"), count: $("#count"), more: $("#more"), sub: $("#sub"),
     q: $("#q"), sort: $("#sort"), days: $("#days"),
-    selbar: $("#selbar"), seln: $("#seln"), selhint: $("#selhint"),
-    makebtn: $("#makebtn"), selclear: $("#selclear"), toast: $("#toast"),
+    // advanced filters
+    advf: $("#advf"), advfBtn: $("#advf-btn"), advfBadge: $("#advf-badge"),
+    worktype: $("#worktype"), coSearch: $("#co-search"), coList: $("#co-list"),
+    advfClear: $("#advf-clear"), advfDone: $("#advf-done"),
   };
 
   const esc = (s) => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -31,34 +31,24 @@
     if (days < 365) return Math.round(days / 30) + "mo ago";
     return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
   }
-  let toastT;
-  function toast(msg, err) {
-    el.toast.textContent = msg; el.toast.classList.toggle("is-err", !!err);
-    el.toast.classList.add("is-show");
-    clearTimeout(toastT); toastT = setTimeout(() => el.toast.classList.remove("is-show"), 3200);
-  }
 
   const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const EXT = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5V10M9 2h5v5M14 2L7 9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function rowHTML(j) {
-    const sel = state.selected.has(j.id);
-    const atMax = state.selected.size >= MAX && !sel;
-    const posted = postedLabel(j.posted_date);
-    return `<div class="jobrow ${sel ? "is-sel" : ""}" data-id="${j.id}">
-      <div class="jobrow__check ${atMax ? "is-disabled" : ""}" role="checkbox" aria-checked="${sel}">${CHECK}</div>
+    const added = postedLabel(j.scraped_date);   // show when we ADDED it, so the
+                                                  // visible date matches "Recently added" order
+    return `<a class="jobrow" href="${esc(j.url)}" target="_blank" rel="noopener">
       <div class="jobrow__main">
         <div class="jobrow__title">${esc(j.title_display || j.title)}</div>
         <div class="jobrow__meta">
           <span class="jobrow__co">${esc(j.company_display || j.company || "—")}</span>
           ${j.work_type ? `<span class="jobrow__sep">·</span><span>${esc(j.work_type)}</span>` : ""}
-          ${posted ? `<span class="jobrow__sep">·</span><span>${esc(posted)}</span>` : ""}
+          ${added ? `<span class="jobrow__sep">·</span><span>${esc(added)}</span>` : ""}
         </div>
       </div>
-      <div class="jobrow__right">
-        <a class="openlink" href="${esc(j.url)}" target="_blank" rel="noopener" title="Open listing" data-noselect>${EXT}</a>
-      </div>
-    </div>`;
+      <span class="openlink" aria-hidden="true">${EXT}</span>
+    </a>`;
   }
 
   async function load(reset) {
@@ -68,82 +58,103 @@
       q: state.q, sort: state.sort, days: state.days,
       page: state.page, per_page: state.perPage,
     });
+    state.company.forEach(label => (coValues.get(label) || [label]).forEach(v => p.append("company", v)));
+    state.workType.forEach(w => p.append("work_type", w));
     let data;
     try { data = await api("/api/jobs?" + p); }
     catch { el.count.textContent = "Couldn’t load jobs."; return; }
     state.pages = data.pages;
-    if (reset) state.jobsById = {};
-    data.jobs.forEach(j => {
-      state.jobsById[j.id] = {
-        id: j.id,
-        title: j.title_display || j.title,
-        company: j.company_display || j.company || "",
-        work_type: j.work_type || "",
-        url: j.url,
-      };
-    });
     const html = data.jobs.map(rowHTML).join("");
     if (reset) el.list.innerHTML = html || `<div class="empty">No jobs match. Try clearing the search or widening the date range.</div>`;
     else el.list.insertAdjacentHTML("beforeend", html);
     el.count.textContent = `${data.total.toLocaleString()} role${data.total === 1 ? "" : "s"} in ${window.PL_CITY_LABEL || "Berlin"}`;
     el.more.style.display = state.page < state.pages ? "" : "none";
-    syncRows();
-  }
-
-  // keep checkbox visuals in sync with the selection set (e.g. after re-render)
-  function syncRows() {
-    const atMax = state.selected.size >= MAX;
-    el.list.querySelectorAll(".jobrow").forEach(row => {
-      const id = +row.dataset.id, sel = state.selected.has(id);
-      row.classList.toggle("is-sel", sel);
-      const chk = row.querySelector(".jobrow__check");
-      chk.setAttribute("aria-checked", sel);
-      chk.classList.toggle("is-disabled", atMax && !sel);
-    });
-  }
-
-  function toggle(row) {
-    const id = +row.dataset.id;
-    if (state.selected.has(id)) state.selected.delete(id);
-    else {
-      if (state.selected.size >= MAX) { toast(`You can select up to ${MAX} jobs.`); return; }
-      const job = state.jobsById[id];
-      if (job) state.selected.set(id, job);
-    }
-    syncRows(); syncSelbar();
-  }
-
-  function syncSelbar() {
-    const n = state.selected.size;
-    el.seln.textContent = n;
-    el.selbar.classList.toggle("is-show", n > 0);
-    el.makebtn.disabled = n < MIN;
-    el.selhint.textContent = n < MIN ? `Select at least ${MIN}` : n >= MAX ? "Maximum reached" : `Up to ${MAX}`;
-    el.makebtn.textContent = n >= MIN ? `Create LinkedIn post (${n}) →` : "Create LinkedIn post →";
   }
 
   // ---- events ----
-  el.list.addEventListener("click", (e) => {
-    if (e.target.closest("[data-noselect]")) return;
-    const row = e.target.closest(".jobrow"); if (row) toggle(row);
-  });
   let qT;
   el.q.addEventListener("input", () => { clearTimeout(qT); qT = setTimeout(() => { state.q = el.q.value.trim(); load(true); }, 280); });
   el.sort.addEventListener("change", () => { state.sort = el.sort.value; load(true); });
   el.days.addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
     el.days.querySelectorAll(".chip").forEach(c => c.classList.remove("is-on"));
-    b.classList.add("is-on"); state.days = +b.dataset.d; load(true);
-  });
-  el.more.addEventListener("click", () => { state.page++; load(false); });
-  el.selclear.addEventListener("click", (e) => { e.preventDefault(); state.selected.clear(); syncRows(); syncSelbar(); });
-  el.makebtn.addEventListener("click", () => {
-    if (state.selected.size < MIN) return;
-    sessionStorage.setItem("pl_selected", JSON.stringify([...state.selected.values()]));
-    sessionStorage.setItem("pl_city_label", window.PL_CITY_LABEL || "Berlin");
-    location.href = "/compose";
+    b.classList.add("is-on"); state.days = +b.dataset.d; updateBadge(); load(true);
   });
 
-  syncSelbar();
+  // ---- advanced filters ----
+  function updateBadge() {
+    const n = (state.days > 0 ? 1 : 0) + state.workType.length + state.company.length;
+    el.advf.classList.toggle("has-active", n > 0);
+    if (n > 0) { el.advfBadge.textContent = n; el.advfBadge.hidden = false; }
+    else el.advfBadge.hidden = true;
+  }
+
+  // companies are grouped by cleaned label; each row filters on its raw names.
+  let companies = null;         // [{label,count,values:[raw,...]}] — lazy-loaded
+  const coValues = new Map();   // label -> [raw names] (for request expansion)
+  async function ensureCompanies() {
+    if (companies !== null) return;
+    el.coList.innerHTML = '<div class="advf__empty">Loading…</div>';
+    try {
+      const d = await api("/api/companies?profile=" + encodeURIComponent(window.PL_CITY || "berlin"));
+      companies = d.companies || [];
+    } catch { companies = []; }
+    companies.forEach(c => coValues.set(c.label, c.values || []));
+    renderCompanies();
+  }
+  function renderCompanies() {
+    if (companies === null) { el.coList.innerHTML = '<div class="advf__empty">Loading…</div>'; return; }
+    const term = (el.coSearch.value || "").trim().toLowerCase();
+    const sel = new Set(state.company);
+    const match = (c) => !term || (c.label || "").toLowerCase().includes(term)
+      || (c.values || []).some(v => (v || "").toLowerCase().includes(term));
+    const picked = companies.filter(c => sel.has(c.label));          // always shown
+    const rest = companies.filter(c => !sel.has(c.label) && match(c));
+    const shown = [...picked, ...rest].slice(0, 240);
+    if (!shown.length) { el.coList.innerHTML = '<div class="advf__empty">No companies match.</div>'; return; }
+    el.coList.innerHTML = shown.map(c => `
+      <button type="button" class="advf__opt${sel.has(c.label) ? " is-on" : ""}" data-co="${esc(c.label)}">
+        <span class="advf__box">${CHECK}</span>
+        <span class="advf__co">${esc(c.label)}</span>
+        <span class="advf__cnt">${c.count}</span>
+      </button>`).join("");
+  }
+
+  el.worktype.addEventListener("click", (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const w = b.dataset.w, i = state.workType.indexOf(w);
+    if (i >= 0) state.workType.splice(i, 1); else state.workType.push(w);
+    b.classList.toggle("is-on"); updateBadge(); load(true);
+  });
+  el.coList.addEventListener("click", (e) => {
+    const b = e.target.closest(".advf__opt"); if (!b) return;
+    const label = b.dataset.co, i = state.company.indexOf(label);
+    if (i >= 0) state.company.splice(i, 1); else state.company.push(label);
+    renderCompanies(); updateBadge(); load(true);
+  });
+  el.coSearch.addEventListener("input", renderCompanies);
+
+  el.advfBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = el.advf.classList.toggle("is-open");
+    el.advfBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) ensureCompanies();
+  });
+  $("#advf-panel").addEventListener("click", (e) => e.stopPropagation());
+  function closeAdvf() { el.advf.classList.remove("is-open"); el.advfBtn.setAttribute("aria-expanded", "false"); }
+  el.advfDone.addEventListener("click", closeAdvf);
+  document.addEventListener("click", closeAdvf);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAdvf(); });
+  el.advfClear.addEventListener("click", () => {
+    state.days = 0; state.workType = []; state.company = [];
+    el.days.querySelectorAll(".chip").forEach(c => c.classList.toggle("is-on", c.dataset.d === "0"));
+    el.worktype.querySelectorAll(".chip").forEach(c => c.classList.remove("is-on"));
+    el.coSearch.value = "";
+    renderCompanies(); updateBadge(); load(true);
+  });
+
+  el.more.addEventListener("click", () => { state.page++; load(false); });
+
+  updateBadge();
   load(true);
 })();
