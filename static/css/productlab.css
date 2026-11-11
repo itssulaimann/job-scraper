@@ -189,6 +189,22 @@ button{font-family:inherit;cursor:pointer;}
 .jobrow:hover .openlink{background:var(--mist);color:var(--evergreen);}
 .openlink svg{width:16px;height:16px;}
 
+/* view modes — toggled by a modifier class on .joblist (same row markup) */
+.joblist--compact{gap:0;border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.joblist--compact .jobrow{border:none;border-bottom:1px solid var(--rule);border-radius:0;box-shadow:none;padding:10px 16px;gap:12px;}
+.joblist--compact .jobrow:last-child{border-bottom:none;}
+.joblist--compact .jobrow:hover{box-shadow:none;background:var(--mist);}
+.joblist--compact .jobrow__main{display:flex;align-items:baseline;gap:12px;overflow:hidden;}
+.joblist--compact .jobrow__title{flex:0 1 auto;min-width:0;max-width:58%;}
+.joblist--compact .jobrow__meta{margin-top:0;min-width:0;white-space:nowrap;}
+
+.joblist--grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px;}
+.joblist--grid .jobrow{flex-direction:column;align-items:flex-start;gap:9px;min-height:96px;position:relative;padding:16px 18px;}
+.joblist--grid .jobrow__main{width:100%;}
+.joblist--grid .jobrow__title{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-right:32px;}
+.joblist--grid .jobrow__meta{flex-wrap:wrap;}
+.joblist--grid .openlink{position:absolute;top:12px;right:12px;}
+
 /* empty / loading */
 .empty{padding:60px 20px;text-align:center;color:var(--stone);font-size:14px;}
 .skl{height:74px;border-radius:var(--radius);background:linear-gradient(90deg,#fff 0%,#eef1ec 50%,#fff 100%);background-size:200% 100%;animation:shimmer 1.1s infinite;}

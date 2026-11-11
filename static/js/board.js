@@ -4,14 +4,18 @@
   const $ = (s, r = document) => r.querySelector(s);
   const api = (p) => fetch(p).then(r => r.json());
 
+  let savedView = "comfortable";
+  try { savedView = localStorage.getItem("pl_view") || "comfortable"; } catch {}
+
   const state = {
     q: "", sort: "newest", days: 0, company: [], workType: [],
+    view: savedView,
     page: 1, perPage: 40, pages: 1,
   };
 
   const el = {
     list: $("#list"), count: $("#count"), more: $("#more"), sub: $("#sub"),
-    q: $("#q"), sort: $("#sort"), days: $("#days"),
+    q: $("#q"), sort: $("#sort"), days: $("#days"), view: $("#view"),
     // advanced filters
     advf: $("#advf"), advfBtn: $("#advf-btn"), advfBadge: $("#advf-badge"),
     worktype: $("#worktype"), coSearch: $("#co-search"), coList: $("#co-list"),
@@ -79,6 +83,19 @@
     const b = e.target.closest(".chip"); if (!b) return;
     el.days.querySelectorAll(".chip").forEach(c => c.classList.remove("is-on"));
     b.classList.add("is-on"); state.days = +b.dataset.d; updateBadge(); load(true);
+  });
+
+  // ---- view (density) — comfortable / compact / grid; CSS does the rest ----
+  function applyView() {
+    el.list.classList.remove("joblist--comfortable", "joblist--compact", "joblist--grid");
+    el.list.classList.add("joblist--" + state.view);
+    el.view.querySelectorAll(".chip").forEach(c => c.classList.toggle("is-on", c.dataset.v === state.view));
+  }
+  el.view.addEventListener("click", (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    state.view = b.dataset.v;
+    try { localStorage.setItem("pl_view", state.view); } catch {}
+    applyView();
   });
 
   // ---- advanced filters ----
@@ -155,6 +172,7 @@
 
   el.more.addEventListener("click", () => { state.page++; load(false); });
 
+  applyView();
   updateBadge();
   load(true);
 })();
