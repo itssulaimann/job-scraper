@@ -4,14 +4,29 @@
   const $ = (s, r = document) => r.querySelector(s);
   const api = (p) => fetch(p).then(r => r.json());
 
-  let savedView = "comfortable";
-  try { savedView = localStorage.getItem("pl_view") || "comfortable"; } catch {}
+  // filters + layout are remembered for this browser session (sessionStorage)
+  const STORE_KEY = "pl_board";
+  let saved = {};
+  try { saved = JSON.parse(sessionStorage.getItem(STORE_KEY)) || {}; } catch {}
 
   const state = {
-    q: "", sort: "newest", days: 0, company: [], workType: [],
-    view: savedView,
+    q: typeof saved.q === "string" ? saved.q : "",
+    sort: saved.sort || "newest",
+    days: Number.isFinite(saved.days) ? saved.days : 0,
+    company: Array.isArray(saved.company) ? saved.company : [],
+    workType: Array.isArray(saved.workType) ? saved.workType : [],
+    view: saved.view || "compact",
     page: 1, perPage: 40, pages: 1,
   };
+
+  function persist() {
+    try {
+      sessionStorage.setItem(STORE_KEY, JSON.stringify({
+        q: state.q, sort: state.sort, days: state.days,
+        company: state.company, workType: state.workType, view: state.view,
+      }));
+    } catch {}
+  }
 
   const el = {
     list: $("#list"), count: $("#count"), more: $("#more"), sub: $("#sub"),
@@ -56,7 +71,7 @@
   }
 
   async function load(reset) {
-    if (reset) { state.page = 1; el.list.innerHTML = '<div class="skl"></div><div class="skl"></div><div class="skl"></div>'; }
+    if (reset) { state.page = 1; persist(); el.list.innerHTML = '<div class="skl"></div><div class="skl"></div><div class="skl"></div>'; }
     const p = new URLSearchParams({
       profile: window.PL_CITY || "berlin",
       q: state.q, sort: state.sort, days: state.days,
@@ -94,7 +109,7 @@
   el.view.addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
     state.view = b.dataset.v;
-    try { localStorage.setItem("pl_view", state.view); } catch {}
+    persist();
     applyView();
   });
 
@@ -172,7 +187,17 @@
 
   el.more.addEventListener("click", () => { state.page++; load(false); });
 
-  applyView();
-  updateBadge();
-  load(true);
+  async function init() {
+    // reflect any session-saved filters back into the controls
+    el.q.value = state.q;
+    el.sort.value = state.sort;
+    el.days.querySelectorAll(".chip").forEach(c => c.classList.toggle("is-on", +c.dataset.d === state.days));
+    el.worktype.querySelectorAll(".chip").forEach(c => c.classList.toggle("is-on", state.workType.includes(c.dataset.w)));
+    // load company labels up front so saved picks expand to the right raw names
+    if (state.company.length) await ensureCompanies();
+    applyView();
+    updateBadge();
+    load(true);
+  }
+  init();
 })();
