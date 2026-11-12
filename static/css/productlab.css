@@ -231,9 +231,65 @@ button{font-family:inherit;cursor:pointer;}
 .panel__h{font-weight:500;font-size:16px;margin-bottom:4px;}
 .panel__sub{font-size:12.5px;color:var(--stone);margin-bottom:14px;}
 
+/* -------------------------------------------------------- analytics ------- */
+.statcard__delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600;margin-top:8px;padding:2px 8px;border-radius:999px;}
+.statcard__delta.up{color:var(--evergreen);background:var(--mist);}
+.statcard__delta.down{color:var(--signal-deep);background:#FDE7EE;}
+.statcard__delta.flat{color:var(--stone);background:var(--paper);}
+
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.rep-grid .panel{margin-top:0;}
+
+.trend-svg{width:100%;height:auto;display:block;margin-top:4px;overflow:visible;}
+.trend-cap{font-size:13.5px;color:var(--slate);margin-top:10px;}
+.trend-cap b{color:var(--ink);font-weight:600;}
+
+/* ranked horizontal bars — sources, companies, seniority */
+.barset{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+.bar{display:flex;align-items:center;gap:12px;}
+.bar__lbl{width:190px;flex:none;font-size:13px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar__track{flex:1;background:var(--mist);border-radius:999px;height:16px;overflow:hidden;}
+.bar__fill{height:100%;background:var(--jade);border-radius:999px;}
+.bar__val{width:88px;flex:none;text-align:right;font-size:13px;font-weight:500;color:var(--evergreen);}
+.bar__pct{color:var(--stone);font-weight:400;margin-left:2px;}
+.new-chip{font-size:11px;color:var(--jade);font-weight:600;margin-left:8px;}
+
+/* segmented mix bar + legend — work mode, freshness */
+.segbar{display:flex;height:22px;border-radius:999px;overflow:hidden;margin:10px 0 12px;background:var(--mist);}
+.segbar__part{height:100%;}
+.seg-legend{display:flex;flex-wrap:wrap;gap:8px 18px;}
+.seg-legend__i{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--slate);}
+.seg-legend__i b{color:var(--ink);font-weight:600;}
+.seg-legend__n{color:var(--stone);}
+.seg-dot{width:10px;height:10px;border-radius:3px;flex:none;}
+
+/* keyword cloud */
+.kw-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center;}
+.kw{background:var(--mist);color:var(--evergreen);border:1px solid var(--rule);border-radius:999px;padding:5px 12px;font-weight:500;line-height:1.1;}
+
+/* new-company chips */
+.co-new-wrap{margin-top:16px;border-top:1px solid var(--rule);padding-top:14px;}
+.co-new-h{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--stone);margin-bottom:9px;}
+.co-new{display:flex;flex-wrap:wrap;gap:8px;}
+.co-new__i{background:var(--lilac);color:var(--plum);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500;}
+
+/* day-of-week vertical bars */
+.vbars{display:flex;gap:10px;margin-top:6px;}
+.vbars__col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.vbars__track{height:120px;width:100%;display:flex;align-items:flex-end;}
+.vbars__bar{width:100%;max-width:40px;margin:0 auto;border-radius:6px 6px 0 0;background:var(--sky);min-height:3px;}
+.vbars__lbl{font-size:12px;color:var(--slate);font-weight:500;}
+.vbars__n{font-size:11.5px;color:var(--stone);}
+
+@media (max-width:760px){
+  .rep-grid{grid-template-columns:1fr;}
+}
+
 @media (max-width:640px){
   .wrap{padding:18px 14px 48px;}
   .page-title{font-size:22px;}
+  .bar__lbl{width:118px;}
+  .bar__val{width:70px;}
   /* header: keep brand + nav + attribution on one tidy row */
   .pl-hd{gap:10px;padding:0 14px;}
   .pl-hd__brand svg{height:20px;}

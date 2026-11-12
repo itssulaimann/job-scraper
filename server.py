@@ -243,6 +243,14 @@ async def get_stats(profile: str = ""):
             "by_source": by_source, "by_date": by_date, "top_companies": top_cos}
 
 
+@app.get("/api/analytics")
+async def api_analytics(profile: str = ""):
+    """Full market report for the /analytics page — KPIs, trends, mixes, momentum."""
+    import analytics
+    with _db(profiles.resolve(profile)) as conn:
+        return analytics.compute(conn, CITY_SQL, WORKTYPE_SQL)
+
+
 @app.get("/api/audit")
 async def api_audit(profile: str = ""):
     import company_audit

@@ -5,8 +5,8 @@
 <div class="wrap">
   <div class="page-head" style="position:relative">
     <div>
-      <div class="page-title"><span id="city-anchor"></span> market overview</div>
-      <div class="page-sub">Where the roles come from — and a data-quality audit of the board.</div>
+      <div class="page-title"><span id="city-anchor"></span> market report</div>
+      <div class="page-sub" id="asof">A data report across every role we track.</div>
     </div>
     <button class="pl-fetch-hidden" id="scrape-btn" aria-label="Refresh data">
       <span class="pl-btn__spin"></span>
@@ -17,15 +17,54 @@
   <div class="cards" id="kpis"></div>
 
   <div class="panel">
+    <div class="panel__h">Intake trend</div>
+    <div class="panel__sub">Roles added per week over the last 12 weeks.</div>
+    <div id="trend"></div>
+  </div>
+
+  <div class="rep-grid">
+    <div class="panel">
+      <div class="panel__h">Work mode</div>
+      <div class="panel__sub">Remote, hybrid or on-site.</div>
+      <div id="workmode"></div>
+    </div>
+    <div class="panel">
+      <div class="panel__h">Seniority mix</div>
+      <div class="panel__sub">How the board skews by level.</div>
+      <div id="seniority"></div>
+    </div>
+  </div>
+
+  <div class="panel">
     <div class="panel__h">Jobs by source</div>
-    <div class="panel__sub">Which scrapers are pulling their weight.</div>
+    <div class="panel__sub">Where roles come from — and which sources are active this week.</div>
     <div id="bySource"></div>
   </div>
 
   <div class="panel">
-    <div class="panel__h">Most-posted companies</div>
-    <div class="panel__sub">Top employers on the board right now.</div>
+    <div class="panel__h">Top companies</div>
+    <div class="panel__sub">Most-posted employers on the board.</div>
     <div id="topCos"></div>
+    <div id="newCos"></div>
+  </div>
+
+  <div class="rep-grid">
+    <div class="panel">
+      <div class="panel__h">Posting freshness</div>
+      <div class="panel__sub">How old a role is when we first see it.</div>
+      <div id="freshness"></div>
+    </div>
+    <div class="panel">
+      <div class="panel__h">When roles are posted</div>
+      <div class="panel__sub">Postings by day of week.</div>
+      <div id="dow"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__h">Role themes</div>
+    <div class="panel__sub">Recurring words in job titles — sized by how often they appear.</div>
+    <div id="keywords"></div>
   </div>
 
   <div class="panel" id="healthPanel">
