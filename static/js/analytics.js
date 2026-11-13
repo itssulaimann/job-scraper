@@ -132,9 +132,7 @@
       kpi("Total roles", n(a.total)) +
       kpi("New this week", n(k.week.cur), `vs ${n(k.week.prev)} the week before`, k.week.delta, true) +
       kpi("Active companies", n(k.active_companies.cur), "hiring in the last 7 days", k.active_companies.delta) +
-      kpi("New companies", n(k.new_companies), "first appeared this week") +
-      kpi("Fresh ≤ 7 days", k.fresh_share == null ? "—" : k.fresh_share + "%",
-        k.median_lag == null ? "share posted within a week" : `median age ${k.median_lag}d when first seen`);
+      kpi("New companies", n(k.new_companies), "first appeared this week");
 
     $("#trend").innerHTML = trendChart(a.intake_weekly) + trendCaption(a.intake_weekly);
     $("#workmode").innerHTML = segbar(a.work_mode, PAL);
